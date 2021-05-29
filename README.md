@@ -1,4 +1,4 @@
-# Stats bash script
+# Kevox Stats bash script
 
 I create this bash script for course in EPSIC, to learn BASH.
 
