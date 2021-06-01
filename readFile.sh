@@ -19,7 +19,7 @@ fi
 # directory=("${directory[@]:1}") // remove first element
 directories=("$1")
 
-exclucedDirectories=("build", "node_modules", "dist", "three.js-master")
+exclucedDirectories=("build" "node_modules" "dist" "three.js-master" "tmp" "bin" "release" "Release" "debug" "Debug" "PublishProfiles")
 
 # ! STAT
 fileCount=0
@@ -61,16 +61,78 @@ while [ ${#directories[@]} -gt 0 ]; do
   directories=("${directories[@]:1}")
 done
 
-echo "---------- END ----------"
-echo "File count: $fileCount"
+extensionsString=("js" "md" "jsx" "ts" "tsx" "rb" "sh" "txt" "html" "css" "svg" "cs")
 
+## now loop through the above array
+for i in "${extensionsString[@]}"
+do
+  $(grep "$i " log.txt > $i.txt)
+  total=()
 
-echo "Array size ${#extensions[@]}"
+  while read p; do
+    count=$(echo $p | tr -dc '0-9')
+    total+=($count)
+  done < $i.txt
 
-for key in ${!extensions[@]}; do
-    echo "/$key/ :${extensions[key]}:"
+  totalLength=${#total[@]}
+
+  if [[ $totalLength -eq 0 ]]; then
+    echo "DESTROY $totalLength ${total[@]} $i"
+    rm "$i.txt"
+    continue
+  fi
+
+  sum=0
+  for y in ${total[@]}; do
+    sum=$(($sum+$y))  
+  done
+
+  min=${total[0]}
+  for y in ${total[@]}; do
+    if [[ $y -lt $min ]]; then
+      min=$y
+    fi
+  done
+
+  max=0
+  for y in ${total[@]}; do
+    if [[ $y -gt $max ]]; then
+      max=$y
+    fi
+  done
+
+  moy=$(($sum / $totalLength))
+
+  med=0
+
+  index=$(($totalLength / 2))
+  if (( $totalLength % 2 )); then
+    med=${total[$index]}
+  else
+    if [[ $totalLength -eq 2 ]]; then
+      med=${total[index]}
+    else
+      med=$(( (${total[index]} + ${total[index + 1]}) / 2))
+    fi
+  fi
+
+  echo ""
+  echo "---------- $i ----------" 
+  echo "Total lines: $sum"
+  echo "Minimum lines file: $min"
+  echo "Maximum lines file: $max"
+  echo "Moyenne lines file: $moy"
+  echo "Mediane lines file: $med"
+  echo "---------- $i ----------" 
+
+  # or do whatever with individual element of the array
+  # TODO: mediane marche pas
+  rm "$i.txt"
 done
 
+echo ""
+echo "---------- END ----------"
+echo "File count: $fileCount"
 
 # ###
 # end of shell script
