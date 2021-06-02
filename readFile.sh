@@ -51,7 +51,7 @@ fi
 # while directories is not empty
 while [ ${#directories[@]} -gt 0 ]; do
   # https://stackoverflow.com/questions/26769493/how-do-i-loop-through-a-directory-path-stored-in-a-variable
-  for file in ${directories[0]}/* ; do
+  for file in ${directories[0]}/*; do
     if [[ -f ${file} ]]; then
       debugEcho "FIND FILE: $file"
 
