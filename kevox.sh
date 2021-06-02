@@ -58,7 +58,7 @@ while [ ${#directories[@]} -gt 0 ]; do
       extension=$(echo $file | rev | cut -d '.' -f 1 | rev)
 
       countFile=$(echo $(wc -l $file) | cut -d ' ' -f 1)
-      echo "$extension $(( $countFile + 1 )) $file" >> log.txt
+      echo "- $extension $(( $countFile + 1 )) $file" >> log.txt
 
       (( fileCount++ ))
     elif [[ -d ${file} ]]; then
@@ -84,7 +84,7 @@ done
 ## now loop through the above array
 for i in "${extensionsString[@]}"; do
   # create file with only matching extensions files
-  $(grep "$i " log.txt > $i.txt)
+  $(grep "\- $i " log.txt > $i.txt)
   totalUnsorted=()
 
   while read p; do
