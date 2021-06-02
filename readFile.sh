@@ -1,47 +1,62 @@
 #!/bin/zsh
 # ###
-# 15.03.20
+# 01.06.20
 # Melvyn Malherbe
 
-if [[ $# -ne 1 ]]; then
-  echo "Please add the directory."
+# check 1 argument is provided
+if [[ $# -lt 1 ]]; then
+  echo "Err: Please add the directory."
   exit 1
 fi
 
+# important variables
+exclucedDirectories=("build" "node_modules" "dist" "three.js-master" "tmp" "bin" "release" "Release" "debug" "Debug" "PublishProfiles")
+extensionsString=("js" "md" "jsx" "ts" "tsx" "rb" "sh" "txt" "html" "css" "svg" "cs")
+directories=()
+fileCount=0
+debug=0
+
+# check flags
+while getopts dp:e:x: opts; do
+   case ${opts} in
+      d) debug=1;;
+      p) directories+=${OPTARG};;
+      e) extensionsString+=(${OPTARG});;
+      x) exclucedDirectories+=(${OPTARG});;
+   esac
+done
+
+function debugEcho {
+  if [[ $debug -eq 1 ]]; then
+    echo "Debug: " $@
+  fi
+}
+
 # try if something exist
-if [[ ! -d "$1" ]]; then
+if [[ ! -d "${directories[0]}" ]]; then
   echo "Err: Directory not exist."
   echo "---"
   echo "Usage: cmd /directory"
   exit 1
 fi
 
-# directory=("${directory[@]:1}") // remove first element
-directories=("$1")
-
-exclucedDirectories=("build" "node_modules" "dist" "three.js-master" "tmp" "bin" "release" "Release" "debug" "Debug" "PublishProfiles")
-
-# ! STAT
-fileCount=0
-
 rm log.txt
-while [ ${#directories[@]} -gt 0 ]; do
-  echo "BOUCLE START ${#directories[@]}"
-  echo "BOUCLE WITH VALUE: ${directories[0]}"
 
+# while directories is not empty
+while [ ${#directories[@]} -gt 0 ]; do
   # https://stackoverflow.com/questions/26769493/how-do-i-loop-through-a-directory-path-stored-in-a-variable
-  for file in ${directories[0]}/*; do
+  for file in ${directories[0]}/* ; do
     if [[ -f ${file} ]]; then
-      echo "FILE: ${file}"
+      debugEcho "FIND FILE: $file"
 
       extension=$(echo $file | rev | cut -d '.' -f 1 | rev)
 
       countFile=$(echo $(wc -l $file) | cut -d ' ' -f 1)
       echo "$extension $(( $countFile + 1 )) $file" >> log.txt
-        
+
       (( fileCount++ ))
     elif [[ -d ${file} ]]; then
-      echo "DIRECTORY: $file"
+      debugEcho "DIRECTORY: $file"
 
       folderName=$(echo $file | rev | cut -d '/' -f 1 | rev)  
 
@@ -61,23 +76,22 @@ while [ ${#directories[@]} -gt 0 ]; do
   directories=("${directories[@]:1}")
 done
 
-extensionsString=("js" "md" "jsx" "ts" "tsx" "rb" "sh" "txt" "html" "css" "svg" "cs")
-
 ## now loop through the above array
-for i in "${extensionsString[@]}"
-do
+for i in "${extensionsString[@]}"; do
+  # create file with only matching extensions files
   $(grep "$i " log.txt > $i.txt)
-  total=()
+  totalUnsorted=()
 
   while read p; do
     count=$(echo $p | tr -dc '0-9')
-    total+=($count)
+    totalUnsorted+=($count)
   done < $i.txt
 
+  total=($( printf "%s\n" "${totalUnsorted[@]}" | sort -n ))
   totalLength=${#total[@]}
 
   if [[ $totalLength -eq 0 ]]; then
-    echo "DESTROY $totalLength ${total[@]} $i"
+    debugEcho "DESTROY $totalLength ${total[@]} $i"
     rm "$i.txt"
     continue
   fi
@@ -112,27 +126,28 @@ do
     if [[ $totalLength -eq 2 ]]; then
       med=${total[index]}
     else
-      med=$(( (${total[index]} + ${total[index + 1]}) / 2))
+      med=$(( (${total[index - 1]} + ${total[index]}) / 2))
     fi
   fi
 
   echo ""
   echo "---------- $i ----------" 
   echo "Total lines: $sum"
-  echo "Minimum lines file: $min"
-  echo "Maximum lines file: $max"
-  echo "Moyenne lines file: $moy"
-  echo "Mediane lines file: $med"
+  echo "Total files: $totalLength"
+  echo "Minimum lines: $min"
+  echo "Maximum lines: $max"
+  echo "Moyenne lines: $moy"
+  echo "Mediane lines: $med"
   echo "---------- $i ----------" 
 
-  # or do whatever with individual element of the array
-  # TODO: mediane marche pas
   rm "$i.txt"
 done
 
 echo ""
 echo "---------- END ----------"
 echo "File count: $fileCount"
+
+rm log.txt
 
 # ###
 # end of shell script
