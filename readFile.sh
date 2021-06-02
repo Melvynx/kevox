@@ -3,6 +3,8 @@
 # 01.06.20
 # Melvyn Malherbe
 
+# todo: avoid take number in foldername / file
+
 # check 1 argument is provided
 if [[ $# -lt 1 ]]; then
   echo "Err: Please add the directory."
@@ -11,18 +13,20 @@ fi
 
 # important variables
 exclucedDirectories=("build" "node_modules" "dist" "three.js-master" "tmp" "bin" "release" "Release" "debug" "Debug" "PublishProfiles")
-extensionsString=("js" "md" "jsx" "ts" "tsx" "rb" "sh" "txt" "html" "css" "svg" "cs")
+extensionsString=("js" "md" "jsx" "ts" "tsx" "rb" "sh" "txt" "html" "css" "svg" "cs" "ru" "json" "sql" "pdf" "yml" "etl" "rake" "erb" "scss")
 directories=()
 fileCount=0
 debug=0
+deleteLog=1
 
 # check flags
-while getopts dp:e:x: opts; do
+while getopts dkp:e:x: opts; do
    case ${opts} in
       d) debug=1;;
       p) directories+=${OPTARG};;
       e) extensionsString+=(${OPTARG});;
       x) exclucedDirectories+=(${OPTARG});;
+      k) deleteLog=0
    esac
 done
 
@@ -40,7 +44,9 @@ if [[ ! -d "${directories[0]}" ]]; then
   exit 1
 fi
 
-rm log.txt
+if [[ -f log.txt ]]; then
+  rm log.txt
+fi
 
 # while directories is not empty
 while [ ${#directories[@]} -gt 0 ]; do
@@ -65,12 +71,11 @@ while [ ${#directories[@]} -gt 0 ]; do
       if [[ $isExclude -eq 0 ]]; then
         directories+=($file)
       else
-        echo "I just exclude: $folderName"
+        debugEcho "I just exclude: $folderName"
       fi
     else
-      echo "UNKNOWN: $file"
+      debugEcho "UNKNOWN: $file"
     fi
-    
   done
 
   directories=("${directories[@]:1}")
@@ -83,7 +88,9 @@ for i in "${extensionsString[@]}"; do
   totalUnsorted=()
 
   while read p; do
-    count=$(echo $p | tr -dc '0-9')
+    # get number from string
+    # ex: "js 15 x/p/12/troup1.js" -> 15
+    count=$(echo $p | awk -F'[^0-9]+' '{ print $2 }')
     totalUnsorted+=($count)
   done < $i.txt
 
@@ -147,7 +154,9 @@ echo ""
 echo "---------- END ----------"
 echo "File count: $fileCount"
 
-rm log.txt
+if [[ $deleteLog -eq 1 ]]; then
+  rm log.txt
+fi
 
 # ###
 # end of shell script
