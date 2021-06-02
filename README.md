@@ -32,3 +32,7 @@ Here is params:
 `-e "js"`: add a custom extensions to the tree checking (by default is `"js" "md" "jsx" "ts" "tsx" "rb" "sh" "txt" "html" "css" "svg" "cs" "ru" "json" "sql" "pdf" "yml" "etl" "rake" "erb" "scss"`)
 `-x "node_modules`: add a excludes folder that will ne be check (by default is `"build" "node_modules" "dist" "three.js-master" "tmp" "bin" "release" "Release" "debug" "Debug" "PublishProfiles"`)
 `-k`: to keep file `log.txt` that includes all files checked for the statistiques.
+
+## Contributions
+
+This repository using [gitmoji-CLI](https://github.com/carloscuesta/gitmoji-cli).
