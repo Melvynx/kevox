@@ -12,7 +12,7 @@ if [[ $# -lt 1 ]]; then
 fi
 
 # important variables
-exclucedDirectories=("build" "node_modules" "dist" "three.js-master" "tmp" "bin" "release" "Release" "debug" "Debug" "PublishProfiles")
+exclucedDirectories=("build" "node_modules" "dist" "tmp" "bin" "release" "Release" "debug" "Debug" "PublishProfiles")
 extensionsString=("js" "md" "jsx" "ts" "tsx" "rb" "sh" "txt" "html" "css" "svg" "cs" "ru" "json" "sql" "pdf" "yml" "etl" "rake" "erb" "scss")
 directories=()
 fileCount=0
@@ -57,8 +57,8 @@ while [ ${#directories[@]} -gt 0 ]; do
 
       extension=$(echo $file | rev | cut -d '.' -f 1 | rev)
 
-      countFile=$(echo $(wc -l $file) | cut -d ' ' -f 1)
-      echo "- $extension $(( $countFile + 1 )) $file" >> log.txt
+      lineCount=$(echo $(wc -l $file) | cut -d ' ' -f 1)
+      echo "- $extension $(( $lineCount + 1 )) $file" >> log.txt
 
       (( fileCount++ ))
     elif [[ -d ${file} ]]; then
@@ -104,19 +104,15 @@ for i in "${extensionsString[@]}"; do
   fi
 
   sum=0
-  for y in ${total[@]}; do
-    sum=$(($sum+$y))  
-  done
-
   min=${total[0]}
+  max=0
   for y in ${total[@]}; do
+    sum=$(($sum+$y))
+
     if [[ $y -lt $min ]]; then
       min=$y
     fi
-  done
 
-  max=0
-  for y in ${total[@]}; do
     if [[ $y -gt $max ]]; then
       max=$y
     fi
